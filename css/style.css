@@ -1,0 +1,230 @@
+/**
+ * style.css — ARROWZ
+ *
+ * Design tokens
+ * ─────────────────────────────────────────────────────
+ *  --color-bg        Background dark navy
+ *  --color-cyan      Primary accent (snake, logo, progress)
+ *  --color-gold      Score / secondary accent
+ *  --color-red       Lives / danger / fail state
+ *  --color-dim       Muted text / labels
+ *
+ * Extending for a new game
+ * ─────────────────────────────────────────────────────
+ *  1. Override CSS custom properties in :root
+ *  2. The layout (.logo, .hud, #cw, #bot, #ov) is reusable
+ *  3. Replace fonts in the @import if needed
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap');
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Design tokens ── */
+:root {
+  --color-bg:    #07071a;
+  --color-cyan:  #00f5c8;
+  --color-gold:  #ffc940;
+  --color-red:   #ff2d6b;
+  --color-dim:   #2a2a50;
+  --font-display: 'Orbitron', sans-serif;
+  --font-mono:    'Share Tech Mono', monospace;
+}
+
+/* ── Base ── */
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  background: var(--color-bg);
+  font-family: var(--font-mono);
+  color: #ccd6f6;
+  touch-action: none;
+}
+
+/* CRT scanline overlay */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent, transparent 3px,
+    rgba(0,0,0,.05) 3px, rgba(0,0,0,.05) 4px
+  );
+  pointer-events: none;
+  z-index: 999;
+}
+
+/* ── Layout shell ── */
+#ui {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column; align-items: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* ── Header / HUD ── */
+#header {
+  width: 100%; max-width: 520px;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 16px 4px;
+  pointer-events: all;
+}
+
+.logo {
+  font-family: var(--font-display);
+  font-weight: 900; font-size: 24px; letter-spacing: 8px;
+  color: var(--color-cyan);
+  text-shadow: 0 0 20px rgba(0,245,200,.7);
+}
+
+.hud { display: flex; gap: 20px; }
+
+.hud-item {
+  display: flex; flex-direction: column;
+  align-items: flex-end; gap: 1px;
+}
+
+.hud-lbl {
+  font-size: 8px; letter-spacing: 3px;
+  color: var(--color-dim); text-transform: uppercase;
+}
+
+.hud-v {
+  font-family: var(--font-display);
+  font-weight: 700; font-size: 17px; line-height: 1;
+}
+.hud-v.lv { color: var(--color-cyan);  text-shadow: 0 0 8px rgba(0,245,200,.5); }
+.hud-v.sc { color: var(--color-gold);  text-shadow: 0 0 8px rgba(255,201,64,.4); }
+.hud-v.li { color: var(--color-red);   text-shadow: 0 0 8px rgba(255,45,107,.5); }
+
+/* ── Progress bar ── */
+#prog-wrap {
+  width: calc(100% - 32px); max-width: 488px;
+  height: 2px; background: #111130;
+  margin: 6px 0 4px;
+  overflow: hidden; border-radius: 2px;
+}
+
+#prog-bar {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-cyan), var(--color-gold));
+  border-radius: 2px;
+  transition: width .4s ease;
+  width: 0;
+}
+
+/* ── Canvas wrapper ── */
+#cw {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; padding: 0 8px;
+  pointer-events: all;
+}
+
+canvas {
+  border-radius: 10px;
+  cursor: pointer;
+  display: block;
+}
+
+/* ── Bottom buttons ── */
+#bot {
+  width: 100%; max-width: 520px;
+  display: flex; gap: 8px; justify-content: center;
+  padding: 8px 16px 16px;
+  pointer-events: all;
+}
+
+.btn {
+  background: rgba(255,255,255,.03);
+  border: 1px solid #252545; border-radius: 8px;
+  color: #ccd6f6;
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 2px;
+  padding: 10px 16px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color .15s, color .15s;
+}
+.btn:active, .btn:hover {
+  border-color: var(--color-cyan);
+  color: var(--color-cyan);
+  background: rgba(0,245,200,.05);
+}
+.btn.p { border-color: rgba(0,245,200,.35); color: var(--color-cyan); }
+
+/* ── Overlay ── */
+#ov {
+  position: fixed; inset: 0;
+  background: rgba(7,7,26,.94);
+  z-index: 500;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 18px;
+  backdrop-filter: blur(14px);
+  transition: opacity .3s;
+}
+#ov.off { opacity: 0; pointer-events: none; }
+
+.ov-title {
+  font-family: var(--font-display);
+  font-weight: 900; font-size: 52px;
+  letter-spacing: 6px; text-align: center; line-height: 1;
+}
+
+.cyan { color: var(--color-cyan); text-shadow: 0 0 40px rgba(0,245,200,.8); }
+.red  { color: var(--color-red);  text-shadow: 0 0 40px rgba(255,45,107,.8); }
+
+.ov-sub {
+  font-size: 11px; letter-spacing: 3px;
+  color: #3a3a60; text-align: center;
+  max-width: 280px; line-height: 1.9;
+}
+
+.stars { display: flex; gap: 12px; font-size: 36px; }
+.star  { opacity: .15; transition: all .5s; filter: grayscale(1); }
+.star.on { opacity: 1; filter: drop-shadow(0 0 8px gold); }
+
+.ov-btn {
+  font-family: var(--font-display);
+  font-weight: 700; font-size: 15px; letter-spacing: 5px;
+  background: transparent;
+  border: 2px solid var(--color-cyan);
+  color: var(--color-cyan);
+  padding: 13px 42px; border-radius: 6px;
+  cursor: pointer;
+  text-shadow: 0 0 10px currentColor;
+  box-shadow: 0 0 20px rgba(0,245,200,.1);
+  transition: all .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.ov-btn:active, .ov-btn:hover {
+  background: rgba(0,245,200,.1);
+  box-shadow: 0 0 40px rgba(0,245,200,.3);
+}
+
+/* ── How-to-play ── */
+.how {
+  display: flex; flex-direction: column;
+  gap: 10px; max-width: 290px;
+}
+.hr2 {
+  display: flex; align-items: center;
+  gap: 10px; font-size: 11px; letter-spacing: 1px; color: #3a3a60;
+}
+.hi { font-size: 20px; min-width: 26px; text-align: center; }
+
+/* ── Float popups (+100, BOOM!) ── */
+.fpop {
+  position: fixed;
+  font-family: var(--font-display);
+  font-weight: 700; font-size: 15px;
+  pointer-events: none; z-index: 800;
+  animation: fp .8s ease-out forwards;
+  text-shadow: 0 0 10px currentColor;
+}
+@keyframes fp {
+  0%   { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-50px); }
+}

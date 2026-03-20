@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#07071a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>ARROWZ</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ════════════════════════════════════════════
+       HUD + CANVAS
+  ════════════════════════════════════════════ -->
+  <div id="ui">
+    <div id="header">
+      <div class="logo">ARROWZ</div>
+      <div class="hud">
+        <div class="hud-item">
+          <span class="hud-lbl">LV</span>
+          <span class="hud-v lv" id="h-lv">1</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-lbl">SCORE</span>
+          <span class="hud-v sc" id="h-sc">0</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-lbl">LIVES</span>
+          <span class="hud-v li" id="h-li">♥♥♥</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="prog-wrap">
+      <div id="prog-bar"></div>
+    </div>
+
+    <div id="cw">
+      <canvas id="c"></canvas>
+    </div>
+
+    <div id="bot">
+      <button class="btn"   id="btn-reset">↺ RESET</button>
+      <button class="btn p" id="btn-hint">💡 HINT</button>
+      <button class="btn"   id="btn-skip">▶▶ SKIP</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       OVERLAY (start / win / lose)
+  ════════════════════════════════════════════ -->
+  <div id="ov">
+    <div class="ov-title cyan" id="ov-title">ARROWZ</div>
+
+    <div class="ov-sub" id="ov-sub">
+      TAP A SNAKE — IT SLITHERS OUT<br>
+      TAIL FADES · HEAD EXITS THE BOARD<br>
+      EVERY LEVEL HAS A SOLUTION
+    </div>
+
+    <!-- Stars (win screen) -->
+    <div class="stars" id="ov-stars" style="display:none">
+      <span class="star" id="s1">★</span>
+      <span class="star" id="s2">★</span>
+      <span class="star" id="s3">★</span>
+    </div>
+
+    <!-- How-to-play (start screen) -->
+    <div class="how" id="ov-how">
+      <div class="hr2"><span class="hi">🐍</span><span>Each arrow is a snake winding through the grid</span></div>
+      <div class="hr2"><span class="hi">👆</span><span>Tap — it slides smoothly toward its arrow direction</span></div>
+      <div class="hr2"><span class="hi">🧩</span><span>Snakes block each other — find the right order</span></div>
+      <div class="hr2"><span class="hi">⭐</span><span>Every level is solvable with zero mistakes</span></div>
+    </div>
+
+    <button class="ov-btn" id="ov-btn">PLAY</button>
+  </div>
+
+  <!-- ════════════════════════════════════════════
+       SCRIPTS  (load order matters)
+         1. audio   — no deps
+         2. levels  — no deps
+         3. engine  — needs audio + levels
+         4. ui      — needs engine + levels
+         5. main    — bootstraps everything
+  ════════════════════════════════════════════ -->
+  <script src="js/audio.js"></script>
+  <script src="js/levels.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+
+</body>
+</html>
