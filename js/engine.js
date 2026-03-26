@@ -92,7 +92,7 @@ const Engine = (() => {
 
   function setCanvasSize(n) {
     N = n;
-    const avail = Math.min(window.innerWidth - 16, window.innerHeight - 148, 500);
+    const avail = Math.min(window.innerWidth - 16, window.innerHeight - 148, 600);
     CS = Math.floor((avail - PAD * 2) / n);
     const tot = CS * n + PAD * 2;
     canvas.width = tot;
@@ -298,7 +298,8 @@ const Engine = (() => {
         ctx.fill();
       }
 
-    for (const s of snakes) _drawSnake(s);
+    const ordered = [...snakes].sort((a, b) => (a.layer ?? 1) - (b.layer ?? 1));
+    for (const s of ordered) _drawSnake(s);
     _drawParticles();
   }
 
@@ -306,10 +307,14 @@ const Engine = (() => {
     if (s.state === 'done') return;
 
     const col    = s.color;
-    const lw     = Math.max(4, CS * 0.22);
+    const scale  = s.scale ?? 1;
+    const layer  = s.layer ?? 1;
+    const lw     = Math.max(3, CS * 0.16 * scale);
     const hl     = s.id === hintId;
     const dv     = DV[s.dir];
     const dirVec = { x: dv.dx, y: dv.dy };
+    const alphaMul = layer === 0 ? 0.65 : layer === 1 ? 0.9 : 1;
+    const glowMul  = layer === 0 ? 0.6 : 1;
 
     let allPts, arrowDir;
 
@@ -333,12 +338,12 @@ const Engine = (() => {
       ctx.save();
       ctx.lineCap = 'round'; ctx.lineJoin = 'round';
       ctx.strokeStyle = col;
-      ctx.lineWidth = lw + 10; ctx.shadowColor = col;
-      ctx.shadowBlur = hl ? 32 : 16; ctx.globalAlpha = hl ? 0.4 : 0.18;
+      ctx.lineWidth = lw + 8; ctx.shadowColor = col;
+      ctx.shadowBlur = (hl ? 28 : 14) * glowMul; ctx.globalAlpha = (hl ? 0.4 : 0.18) * alphaMul;
       _strokePts(allPts);
-      ctx.lineWidth = lw; ctx.shadowBlur = hl ? 20 : 8; ctx.globalAlpha = 1;
+      ctx.lineWidth = lw; ctx.shadowBlur = (hl ? 18 : 7) * glowMul; ctx.globalAlpha = 1 * alphaMul;
       _strokePts(allPts);
-      ctx.shadowBlur = 0; ctx.fillStyle = col; ctx.globalAlpha = 0.25;
+      ctx.shadowBlur = 0; ctx.fillStyle = col; ctx.globalAlpha = 0.22 * alphaMul;
       for (let i = 0; i < allPts.length; i += 2) {
         const r = Math.max(0.1, lw * 0.4);
         ctx.beginPath(); ctx.arc(allPts[i].x, allPts[i].y, r, 0, Math.PI*2); ctx.fill();
@@ -347,15 +352,15 @@ const Engine = (() => {
     }
 
     const headPt = allPts[allPts.length - 1];
-    _drawArrow(headPt.x, headPt.y, arrowDir, col, lw, hl);
+    _drawArrow(headPt.x, headPt.y, arrowDir, col, lw, hl, scale, alphaMul, glowMul);
   }
 
-  function _drawArrow(cx, cy, dir, col, lw, hl) {
+  function _drawArrow(cx, cy, dir, col, lw, hl, scale = 1, alphaMul = 1, glowMul = 1) {
     const adx      = dir.x, ady = dir.y;
     const perp     = { x: -ady, y: adx };
-    const neckLen  = CS * 0.36;
-    const wingHalf = lw * 1.4;
-    const tipExtra = CS * 0.30;
+    const neckLen  = CS * 0.30 * scale;
+    const wingHalf = lw * 1.2;
+    const tipExtra = CS * 0.24 * scale;
     const neckEndX = cx + adx * neckLen, neckEndY = cy + ady * neckLen;
     const tipX     = neckEndX + adx * tipExtra, tipY = neckEndY + ady * tipExtra;
 
@@ -364,13 +369,13 @@ const Engine = (() => {
     ctx.shadowColor = col;
     // Neck glow
     ctx.strokeStyle = col; ctx.lineWidth = lw + 8;
-    ctx.shadowBlur = hl ? 28 : 14; ctx.globalAlpha = hl ? 0.4 : 0.18;
+    ctx.shadowBlur = (hl ? 24 : 12) * glowMul; ctx.globalAlpha = (hl ? 0.4 : 0.18) * alphaMul;
     ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(neckEndX, neckEndY); ctx.stroke();
     // Neck
-    ctx.lineWidth = lw; ctx.shadowBlur = hl ? 18 : 9; ctx.globalAlpha = 1;
+    ctx.lineWidth = lw; ctx.shadowBlur = (hl ? 16 : 8) * glowMul; ctx.globalAlpha = 1 * alphaMul;
     ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(neckEndX, neckEndY); ctx.stroke();
     // Triangle
-    ctx.fillStyle = col; ctx.shadowBlur = hl ? 24 : 12; ctx.globalAlpha = 1;
+    ctx.fillStyle = col; ctx.shadowBlur = (hl ? 20 : 10) * glowMul; ctx.globalAlpha = 1 * alphaMul;
     ctx.beginPath();
     ctx.moveTo(tipX, tipY);
     ctx.lineTo(neckEndX + perp.x * wingHalf, neckEndY + perp.y * wingHalf);
@@ -457,7 +462,10 @@ const Engine = (() => {
 
   const SNAKE_COLORS = [
     '#00f5c8','#ff2d6b','#ffc940','#a78bfa',
-    '#38bdf8','#fb923c','#4ade80','#f472b6','#e879f9','#34d399',
+    '#38bdf8','#fb923c','#4ade80','#f472b6',
+    '#e879f9','#34d399','#22d3ee','#fde047',
+    '#f97316','#60a5fa','#a3e635','#f43f5e',
+    '#c084fc','#14b8a6',
   ];
 
   let _currentLevelData = null;
@@ -496,7 +504,16 @@ const Engine = (() => {
         }
       }
 
-      const sn = { id: i, color: SNAKE_COLORS[i % SNAKE_COLORS.length], dir, body, state: 'idle', anim: null };
+      const sn = {
+        id: i,
+        color: SNAKE_COLORS[i % SNAKE_COLORS.length],
+        dir,
+        body,
+        scale: s.scale ?? 1,
+        layer: s.layer ?? 1,
+        state: 'idle',
+        anim: null
+      };
       placeSnake(sn);
       return sn;
     });
