@@ -434,14 +434,46 @@ const Engine = (() => {
 
   // ── Input ─────────────────────────────────────────
 
+  function _distPointToSeg(px, py, ax, ay, bx, by) {
+    const abx = bx - ax, aby = by - ay;
+    const apx = px - ax, apy = py - ay;
+    const ab2 = abx * abx + aby * aby;
+    let t = ab2 > 0 ? (apx * abx + apy * aby) / ab2 : 0;
+    t = Math.max(0, Math.min(1, t));
+    const cx = ax + abx * t, cy = ay + aby * t;
+    const dx = px - cx, dy = py - cy;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+
+  function _minDistToPolyline(pts, px, py) {
+    if (!pts || pts.length < 2) return Infinity;
+    let best = Infinity;
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i - 1], b = pts[i];
+      const d = _distPointToSeg(px, py, a.x, a.y, b.x, b.y);
+      if (d < best) best = d;
+    }
+    return best;
+  }
+
   function _onTap(ex, ey) {
-    const gx = Math.floor((ex - PAD) / CS);
-    const gy = Math.floor((ey - PAD) / CS);
-    if (gx < 0 || gx >= N || gy < 0 || gy >= N) return;
-    const id = grid[gy]?.[gx];
-    if (id === null || id === undefined) return;
-    if (snakes[id]?.state !== 'idle') return;
-    activate(id);
+    // Require proximity to a snake line to activate (tighter hitbox).
+    let bestId = null;
+    let bestDist = Infinity;
+
+    for (const s of snakes) {
+      if (s.state !== 'idle') continue;
+      const poly = buildPolyline(s.body);
+      const d = _minDistToPolyline(poly.pts, ex, ey);
+      const scale = s.scale ?? 1;
+      const hit = Math.max(4, CS * 0.12 * scale);
+      if (d <= hit && d < bestDist) {
+        bestDist = d;
+        bestId = s.id;
+      }
+    }
+
+    if (bestId !== null) activate(bestId);
   }
 
   canvas.addEventListener('click', e => {
