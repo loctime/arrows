@@ -358,9 +358,9 @@ const Engine = (() => {
   function _drawArrow(cx, cy, dir, col, lw, hl, scale = 1, alphaMul = 1, glowMul = 1) {
     const adx      = dir.x, ady = dir.y;
     const perp     = { x: -ady, y: adx };
-    const neckLen  = CS * 0.30 * scale;
-    const wingHalf = lw * 1.2;
-    const tipExtra = CS * 0.24 * scale;
+    const neckLen  = CS * 0.32 * scale;
+    const wingHalf = lw * 1.6;
+    const tipExtra = CS * 0.32 * scale;
     const neckEndX = cx + adx * neckLen, neckEndY = cy + ady * neckLen;
     const tipX     = neckEndX + adx * tipExtra, tipY = neckEndY + ady * tipExtra;
 
@@ -374,13 +374,21 @@ const Engine = (() => {
     // Neck
     ctx.lineWidth = lw; ctx.shadowBlur = (hl ? 16 : 8) * glowMul; ctx.globalAlpha = 1 * alphaMul;
     ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(neckEndX, neckEndY); ctx.stroke();
-    // Triangle
+    // Triangle (with outline for clarity)
+    const tri = () => {
+      ctx.beginPath();
+      ctx.moveTo(tipX, tipY);
+      ctx.lineTo(neckEndX + perp.x * wingHalf, neckEndY + perp.y * wingHalf);
+      ctx.lineTo(neckEndX - perp.x * wingHalf, neckEndY - perp.y * wingHalf);
+      ctx.closePath();
+    };
+    ctx.shadowBlur = 0;
+    ctx.lineWidth = Math.max(1.5, lw * 0.45);
+    ctx.strokeStyle = 'rgba(6,6,18,0.85)';
+    ctx.globalAlpha = 0.9 * alphaMul;
+    tri(); ctx.stroke();
     ctx.fillStyle = col; ctx.shadowBlur = (hl ? 20 : 10) * glowMul; ctx.globalAlpha = 1 * alphaMul;
-    ctx.beginPath();
-    ctx.moveTo(tipX, tipY);
-    ctx.lineTo(neckEndX + perp.x * wingHalf, neckEndY + perp.y * wingHalf);
-    ctx.lineTo(neckEndX - perp.x * wingHalf, neckEndY - perp.y * wingHalf);
-    ctx.closePath(); ctx.fill();
+    tri(); ctx.fill();
     ctx.restore();
   }
 
