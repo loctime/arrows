@@ -5,7 +5,7 @@
  * Update CACHE_VERSION when deploying new assets.
  */
 
-const CACHE_VERSION = 'arrowz-v1';
+const CACHE_VERSION = 'arrowz-v2';
 const ASSETS = [
   './',
   './index.html',
